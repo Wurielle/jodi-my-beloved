@@ -1,0 +1,27 @@
+{
+  "workspaces": [
+    "apps/*"
+  ],
+  "private": true,
+  "name": "jodi-my-beloved",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wurielle/jodi-my-beloved.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wurielle/jodi-my-beloved/issues"
+  },
+  "homepage": "https://github.com/Wurielle/jodi-my-beloved#readme",
+  "dependencies": {
+    "lerna": "^4.0.0",
+    "prettier": "^2.8.8"
+  }
+}
