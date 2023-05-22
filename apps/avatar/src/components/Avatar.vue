@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <img ref="img" :src="currentImage" alt="my beloved jodi" />
-  </div>
+    <div>
+        <img ref="img" :src="currentImage" alt="my beloved jodi" />
+    </div>
 </template>
 <script lang="ts" setup>
 import { onBeforeUnmount, onMounted, ref } from "vue";
@@ -25,29 +25,34 @@ const images = [
   surprise,
 ];
 let interval = null;
+let defaultAnimation = null;
+
+const onMessageStart = () => {
+    nextImage.value = images[Math.floor(Math.random() * images.length)];
+    defaultAnimation?.restart();
+}
+
 onMounted(() => {
-  const defaultAnimation = gsap
-    .timeline({ repeat: 0 })
-    .set(img.value, { transformOrigin: "center bottom" })
-    .to(img.value, { duration: 0.1, scaleY: 0.5, ease: "power4.out" })
-    .to(img.value, {
-      onStart() {
-        currentImage.value = nextImage.value;
-      },
-      duration: 0.5,
-      scaleY: 1,
-      ease: "elastic.out",
-    });
+    defaultAnimation = gsap
+        .timeline({ repeat: 0 })
+        .set(img.value, { transformOrigin: "center bottom" })
+        .to(img.value, { duration: 0.1, scaleY: 0.5, ease: "power4.out" })
+        .to(img.value, {
+            onStart() {
+                currentImage.value = nextImage.value;
+            },
+            duration: 0.5,
+            scaleY: 1,
+            ease: "elastic.out",
+        });
   images.forEach((src) => {
     const img = new Image();
     img.src = src;
   });
 
-  interval = setInterval(() => {
-    nextImage.value = images[Math.floor(Math.random() * images.length)];
-    defaultAnimation.restart();
-  }, 1000);
+  interval = setInterval(onMessageStart, 1000);
 });
+
 onBeforeUnmount(() => {
   clearInterval(interval);
 });

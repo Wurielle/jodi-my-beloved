@@ -1,14 +1,159 @@
 <template>
   <Avatar
     :style="{
-      width: `${route.query.w || 500}px`,
+      width: `${width}px`,
     }"
     class="fixed right-0 bottom-0"
   />
+  <div class="opacity-0">
+    <Speech
+      v-for="(message, i) in speechStore.messages"
+      :key="message"
+      :data-ghost-speech-id="message"
+      :data-ghost-speech-index="i"
+      :message="message"
+      class="fixed"
+    />
+  </div>
+  <TransitionGroup
+    :css="false"
+    tag="div"
+    @beforeEnter="
+      (el) => {
+        gsap.set(el, {
+          transformOrigin: 'right bottom',
+          rotate: -15,
+          y: 30,
+          x: 50,
+          opacity: 0,
+        });
+      }
+    "
+    @enter="
+      (el, done) => {
+        gsap
+          .timeline({ repeat: 0 })
+          .to(el, { duration: 0.1, scaleY: 0.5, ease: 'power4.out' }, 'start')
+          .to(el, {
+            duration: 0.5,
+            scaleY: 1,
+            ease: 'elastic.out',
+          })
+          .to(
+            el,
+            {
+              duration: 0.7,
+              rotate: 0,
+              ease: 'elastic.out',
+              opacity: 1,
+              y: 0,
+              x: 0,
+              onComplete: done,
+            },
+            'start'
+          );
+      }
+    "
+    @leave="
+      (el, done) => {
+        const height = getTotalHeight(Number(el.dataset.speechIndex));
+        gsap.timeline({ repeat: 0 }).to(el, {
+          duration: 0.3,
+          y: -50 - height,
+          ease: 'power4.out',
+          opacity: 0,
+          onComplete: done,
+        });
+        // .to(el, {
+        //   duration: 0.5,
+        //   scaleY: 1,
+        //   ease: 'elastic.out',
+        // })
+        // .to(
+        //   el,
+        //   {
+        //     duration: 0.7,
+        //     rotate: 0,
+        //     ease: 'elastic.out',
+        //     opacity: 1,
+        //     y: 0,
+        //     x: 0,
+        //     onComplete: done,
+        //   },
+        //   'start'
+        // );
+      }
+    "
+  >
+    <Speech
+      v-for="(message, i) in speechStore.messages"
+      :key="message"
+      :data-speech-id="message"
+      :data-speech-index="i"
+      :message="message"
+      :style="{
+        right: `${width / 1.4}px`,
+        bottom: `${width / 1.8}px`,
+        zIndex: `${speechStore.messages.length - i}`,
+      }"
+      class="fixed"
+    />
+  </TransitionGroup>
 </template>
 <script lang="ts" setup>
-import Avatar from "../Avatar.vue";
+import Avatar from "@/components/Avatar.vue";
+import Speech from "@/components/Speech.vue";
 import { useRoute } from "vue-router";
+import { computed, nextTick, onMounted, watch } from "vue";
+import { useSpeechStore } from "../store/speech.store.ts";
+import { v4 as uuid } from "uuid";
+import gsap from "gsap";
 
 const route = useRoute();
+const width = computed(() => route.query.w || 500);
+const speechStore = useSpeechStore();
+let interval = null;
+onMounted(() => {
+  interval = setInterval(() => {
+    speechStore.addMessage(uuid());
+  }, 1000);
+});
+
+watch(
+  () => speechStore.messages,
+  (messages) => {
+    nextTick(() => {
+      messages.forEach((message, i) => {
+        const el = document.querySelector(`[data-speech-index="${i}"]`);
+        const ghostEl = document.querySelector(
+          `[data-ghost-speech-index="${i}"]`
+        );
+        if (!el || !ghostEl) return;
+        const index = Number(ghostEl.dataset.ghostSpeechIndex);
+        if (el && ghostEl) {
+          gsap.to(el, {
+            y: -getTotalHeight(index),
+          });
+        }
+      });
+    });
+  },
+  { deep: true }
+);
+
+function getTotalHeight(index) {
+  const elements = document.querySelectorAll("[data-ghost-speech-index]");
+  const filteredElements = Array.from(elements).filter(
+    (el) => Number(el.dataset.ghostSpeechIndex) <= index
+  );
+  let totalHeight = 0;
+
+  for (let i = 0; i < index; i++) {
+    if (elements[i]) {
+      totalHeight += elements[i].offsetHeight + 12;
+    }
+  }
+
+  return totalHeight;
+}
 </script>
