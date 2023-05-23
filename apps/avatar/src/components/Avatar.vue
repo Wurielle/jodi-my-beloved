@@ -1,10 +1,15 @@
 <template>
-    <div>
-        <img ref="img" :src="currentImage" alt="my beloved jodi" />
-    </div>
+  <div
+    :style="{
+      width: `${width}px`,
+    }"
+    class="fixed right-0 bottom-0"
+  >
+    <img ref="img" :src="currentImage" alt="my beloved jodi" />
+  </div>
 </template>
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import adjustGlasses from "@/assets/adjust-glasses.png";
 import nyan from "@/assets/nyan.png";
 import pointAtScreen from "@/assets/point-at-screen.png";
@@ -12,6 +17,10 @@ import speaking from "@/assets/speaking.png";
 import standard from "@/assets/standard.png";
 import surprise from "@/assets/surprise.png";
 import gsap from "gsap";
+import { useRoute } from "vue-router";
+
+const route = useRoute();
+const width = computed(() => route.query.w || 500);
 
 const img = ref(null);
 const currentImage = ref(standard);
@@ -28,23 +37,23 @@ let interval = null;
 let defaultAnimation = null;
 
 const onMessageStart = () => {
-    nextImage.value = images[Math.floor(Math.random() * images.length)];
-    defaultAnimation?.restart();
-}
+  nextImage.value = images[Math.floor(Math.random() * images.length)];
+  defaultAnimation?.restart();
+};
 
 onMounted(() => {
-    defaultAnimation = gsap
-        .timeline({ repeat: 0 })
-        .set(img.value, { transformOrigin: "center bottom" })
-        .to(img.value, { duration: 0.1, scaleY: 0.5, ease: "power4.out" })
-        .to(img.value, {
-            onStart() {
-                currentImage.value = nextImage.value;
-            },
-            duration: 0.5,
-            scaleY: 1,
-            ease: "elastic.out",
-        });
+  defaultAnimation = gsap
+    .timeline({ repeat: 0 })
+    .set(img.value, { transformOrigin: "center bottom" })
+    .to(img.value, { duration: 0.1, scaleY: 0.5, ease: "power4.out" })
+    .to(img.value, {
+      onStart() {
+        currentImage.value = nextImage.value;
+      },
+      duration: 0.5,
+      scaleY: 1,
+      ease: "elastic.out",
+    });
   images.forEach((src) => {
     const img = new Image();
     img.src = src;
