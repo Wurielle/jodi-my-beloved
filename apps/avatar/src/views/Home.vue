@@ -7,9 +7,9 @@
   />
   <div class="opacity-0">
     <Speech
-      v-for="(message, i) in speechStore.messages"
-      :key="message"
-      :data-ghost-speech-id="message"
+      v-for="({ message, id }, i) in speechStore.messages"
+      :key="id"
+      :data-ghost-speech-id="id"
       :data-ghost-speech-index="i"
       :message="message"
       class="fixed"
@@ -64,31 +64,13 @@
           opacity: 0,
           onComplete: done,
         });
-        // .to(el, {
-        //   duration: 0.5,
-        //   scaleY: 1,
-        //   ease: 'elastic.out',
-        // })
-        // .to(
-        //   el,
-        //   {
-        //     duration: 0.7,
-        //     rotate: 0,
-        //     ease: 'elastic.out',
-        //     opacity: 1,
-        //     y: 0,
-        //     x: 0,
-        //     onComplete: done,
-        //   },
-        //   'start'
-        // );
       }
     "
   >
     <Speech
-      v-for="(message, i) in speechStore.messages"
-      :key="message"
-      :data-speech-id="message"
+      v-for="({ message, id }, i) in speechStore.messages"
+      :key="id"
+      :data-speech-id="id"
       :data-speech-index="i"
       :message="message"
       :style="{
@@ -106,16 +88,32 @@ import Speech from "@/components/Speech.vue";
 import { useRoute } from "vue-router";
 import { computed, nextTick, onMounted, watch } from "vue";
 import { useSpeechStore } from "../store/speech.store.ts";
-import { v4 as uuid } from "uuid";
 import gsap from "gsap";
+import { v4 as uuid } from "uuid";
 
 const route = useRoute();
 const width = computed(() => route.query.w || 500);
 const speechStore = useSpeechStore();
 let interval = null;
 onMounted(() => {
+  var randomSentences = [
+    "The quick brown fox jumps over the lazy dog.",
+    "She sells seashells by the seashore.",
+    "I enjoy playing tennis on weekends.",
+    "The sun sets in the west.",
+    "Coding is fun and challenging.",
+    "I love eating pizza with extra cheese.",
+    "Life is full of surprises.",
+    "The moonlight shone through the trees.",
+    "Music is a universal language.",
+    "I prefer tea over coffee in the morning.",
+  ];
   interval = setInterval(() => {
-    speechStore.addMessage(uuid());
+    speechStore.addMessage({
+      message:
+        randomSentences[Math.floor(Math.random() * randomSentences.length)],
+      id: uuid(),
+    });
   }, 1000);
 });
 
@@ -144,15 +142,13 @@ watch(
 function getTotalHeight(index) {
   const elements = document.querySelectorAll("[data-ghost-speech-index]");
   const filteredElements = Array.from(elements).filter(
-    (el) => Number(el.dataset.ghostSpeechIndex) <= index
+    (el) => Number(el.dataset.ghostSpeechIndex) < index
   );
   let totalHeight = 0;
 
-  for (let i = 0; i < index; i++) {
-    if (elements[i]) {
-      totalHeight += elements[i].offsetHeight + 12;
-    }
-  }
+  filteredElements.forEach((el) => {
+    totalHeight += el.offsetHeight + 12;
+  });
 
   return totalHeight;
 }
