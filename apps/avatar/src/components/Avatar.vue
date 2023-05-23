@@ -18,7 +18,10 @@ import standard from "@/assets/standard.png";
 import surprise from "@/assets/surprise.png";
 import gsap from "gsap";
 import { useRoute } from "vue-router";
+import { socket } from "@/services/socket";
+import { useSpeechStore } from "@/store/speech.store.ts";
 
+const debug = false;
 const route = useRoute();
 const width = computed(() => route.query.w || 500);
 
@@ -35,15 +38,21 @@ const images = [
 ];
 let interval = null;
 let defaultAnimation = null;
-
-const onMessageStart = () => {
+let timeout = null;
+const speechStore = useSpeechStore();
+const random = () => {
   nextImage.value = images[Math.floor(Math.random() * images.length)];
   defaultAnimation?.restart();
+  if (timeout) clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    nextImage.value = standard;
+    defaultAnimation?.restart();
+  }, speechStore.expiration);
 };
 
 onMounted(() => {
   defaultAnimation = gsap
-    .timeline({ repeat: 0 })
+    .timeline({ paused: true })
     .set(img.value, { transformOrigin: "center bottom" })
     .to(img.value, { duration: 0.1, scaleY: 0.5, ease: "power4.out" })
     .to(img.value, {
@@ -58,8 +67,10 @@ onMounted(() => {
     const img = new Image();
     img.src = src;
   });
-
-  interval = setInterval(onMessageStart, 1000);
+  socket.on("message:start", () => {
+    random();
+  });
+  if (debug) interval = setInterval(random, 1000);
 });
 
 onBeforeUnmount(() => {

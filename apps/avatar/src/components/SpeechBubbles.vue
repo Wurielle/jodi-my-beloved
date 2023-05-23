@@ -83,31 +83,58 @@ import { computed, nextTick, onMounted, watch } from "vue";
 import { useSpeechStore } from "../store/speech.store.ts";
 import gsap from "gsap";
 import { v4 as uuid } from "uuid";
+import { socket } from "@/services/socket";
 
+const debug = false;
 const route = useRoute();
 const width = computed(() => route.query.w || 500);
 const speechStore = useSpeechStore();
 let interval = null;
+
+const getTotalHeight = (index) => {
+  const elements = document.querySelectorAll("[data-ghost-speech-index]");
+  const filteredElements = Array.from(elements).filter(
+    (el) => Number(el.dataset.ghostSpeechIndex) < index
+  );
+  let totalHeight = 0;
+
+  filteredElements.forEach((el) => {
+    totalHeight += el.offsetHeight + 12;
+  });
+
+  return totalHeight;
+};
+
+const randomSentences = [
+  "The quick brown fox jumps over the lazy dog.",
+  "She sells seashells by the seashore.",
+  "I enjoy playing tennis on weekends.",
+  "The sun sets in the west.",
+  "Coding is fun and challenging.",
+  "I love eating pizza with extra cheese.",
+  "Life is full of surprises.",
+  "The moonlight shone through the trees.",
+  "Music is a universal language.",
+  "I prefer tea over coffee in the morning.",
+];
+
+const random = () => {
+  speechStore.addMessage({
+    message:
+      randomSentences[Math.floor(Math.random() * randomSentences.length)],
+    id: uuid(),
+  });
+};
+
 onMounted(() => {
-  var randomSentences = [
-    "The quick brown fox jumps over the lazy dog.",
-    "She sells seashells by the seashore.",
-    "I enjoy playing tennis on weekends.",
-    "The sun sets in the west.",
-    "Coding is fun and challenging.",
-    "I love eating pizza with extra cheese.",
-    "Life is full of surprises.",
-    "The moonlight shone through the trees.",
-    "Music is a universal language.",
-    "I prefer tea over coffee in the morning.",
-  ];
-  interval = setInterval(() => {
+  socket.on("message:start", (messagePayload) => {
+    console.log("[socket.io] Message:", messagePayload);
     speechStore.addMessage({
-      message:
-        randomSentences[Math.floor(Math.random() * randomSentences.length)],
+      message: messagePayload.message,
       id: uuid(),
     });
-  }, 1000);
+  });
+  if (debug) interval = setInterval(random, 1000);
 });
 
 watch(
@@ -131,18 +158,4 @@ watch(
   },
   { deep: true }
 );
-
-function getTotalHeight(index) {
-  const elements = document.querySelectorAll("[data-ghost-speech-index]");
-  const filteredElements = Array.from(elements).filter(
-    (el) => Number(el.dataset.ghostSpeechIndex) < index
-  );
-  let totalHeight = 0;
-
-  filteredElements.forEach((el) => {
-    totalHeight += el.offsetHeight + 12;
-  });
-
-  return totalHeight;
-}
 </script>

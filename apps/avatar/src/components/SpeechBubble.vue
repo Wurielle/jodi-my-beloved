@@ -1,7 +1,7 @@
 <template>
   <div
     ref="speech"
-    class="text-sm inline-flex border-[3px] border-black max-w-[300px] p-[16px] rounded-full !rounded-br-md bg-white"
+    class="text-sm inline-flex border-[3px] border-black max-w-[300px] py-[8px] px-[16px] rounded-full !rounded-br-md bg-white"
   >
     {{ props.message }}
   </div>

@@ -7,6 +7,7 @@ type Message = {
 };
 export const useSpeechStore = defineStore("speech", () => {
   const limit = ref(3);
+  const expiration = ref(5000);
   const messages = ref<Message[]>([]);
   const removeMessage = (id: string) => {
     const index = messages.value.findIndex((m) => m.id === id);
@@ -17,11 +18,12 @@ export const useSpeechStore = defineStore("speech", () => {
     if (messages.value.length > limit.value) {
       messages.value.pop();
     }
-    setTimeout(removeMessage, 5000);
+    setTimeout(() => removeMessage(message.id), expiration.value);
   };
   return {
     messages,
     addMessage,
     limit,
+    expiration,
   };
 });
